@@ -1,0 +1,55 @@
+<nav class="navbar" [class.navbar--open]="open()" aria-label="Main navigation">
+  <div class="container">
+    <ul class="navbar__list">
+      @for (item of items; track item.label) {
+        <li
+          class="navbar__item"
+          [class.navbar__item--dropdown]="item.children"
+          [class.navbar__item--has-active]="isActive(item)"
+          (mouseenter)="item.children && openDropdown(item.label)"
+          (mouseleave)="item.children && activeDropdown.set(null)"
+        >
+          @if (item.children) {
+            <button
+              type="button"
+              class="navbar__link navbar__link--parent"
+              [class.navbar__link--active]="isActive(item)"
+              (click)="toggleDropdown(item.label)"
+              [attr.aria-expanded]="activeDropdown() === item.label"
+            >
+              {{ item.label }}
+              <app-icon name="chevron-down" [size]="14" />
+            </button>
+
+            <div class="navbar__dropdown" [class.navbar__dropdown--open]="activeDropdown() === item.label">
+              @for (child of item.children; track child.label) {
+                <a
+                  class="navbar__dropdown-link"
+                  [routerLink]="child.route"
+                  [queryParams]="child.query"
+                  (click)="close()"
+                >
+                  <app-icon name="sparkles" [size]="15" />
+                  <span>{{ child.label }}</span>
+                  <app-icon class="navbar__dropdown-arrow" name="chevron-right" [size]="15" />
+                </a>
+              }
+            </div>
+          } @else {
+            <a
+              class="navbar__link"
+              [class.navbar__link--active]="isActive(item)"
+              [class.navbar__link--highlight]="item.highlight"
+              [class.navbar__link--cta]="item.cta"
+              [routerLink]="item.route"
+              [queryParams]="item.query"
+              (click)="close()"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+</nav>

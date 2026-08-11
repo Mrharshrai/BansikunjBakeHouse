@@ -1,0 +1,74 @@
+<section class="orders section">
+  <div class="container">
+    <div class="section-head section-head--left">
+      <p class="eyebrow">Order history</p>
+      <h1 class="section-head__title">My Orders</h1>
+    </div>
+
+    @if (orderService.loading()) {
+      <app-loader text="Fetching your orders…" />
+    } @else if (orders().length) {
+      <div class="orders__list">
+        @for (order of orders(); track order.id) {
+          <article class="order fade-in">
+            <header class="order__head">
+              <div class="order__head-info">
+                <strong class="order__id">{{ order.id }}</strong>
+                <span class="order__date">{{ order.createdAt | date: 'fullDate' }}</span>
+              </div>
+              <span class="badge {{ badgeFor(order.status) }}">{{ order.status }}</span>
+            </header>
+
+            <div class="order__body">
+              <div class="order__items">
+                @for (item of order.items; track item.product.id) {
+                  <div class="order__item">
+                    <img [src]="item.product.image" [alt]="item.product.name" />
+                    <div class="order__item-meta">
+                      <strong>{{ item.product.name }}</strong>
+                      <span>Qty: {{ item.quantity }}</span>
+                    </div>
+                    <span class="order__item-price">&#8377;{{ item.lineTotal }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="order__side">
+                <div class="order__totals">
+                  <div><span>Subtotal</span><strong>&#8377;{{ order.subtotal }}</strong></div>
+                  <div><span>Discount</span><strong class="order__save">-&#8377;{{ order.discount }}</strong></div>
+                  <div><span>Delivery</span><strong>{{ order.deliveryCharge ? '&#8377;' + order.deliveryCharge : 'FREE' }}</strong></div>
+                  <div class="order__grand"><span>Total</span><strong>&#8377;{{ order.total }}</strong></div>
+                </div>
+                <div class="order__meta">
+                  <p>
+                    <app-icon name="user" [size]="15" />
+                    {{ order.customerName }}
+                  </p>
+                  <p>
+                    <app-icon name="map-pin" [size]="15" />
+                    {{ order.address }}
+                  </p>
+                  <p>
+                    <app-icon name="credit-card" [size]="15" />
+                    {{ order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid Online' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="orders__empty">
+        <app-icon name="box" [size]="52" />
+        <h2>No orders yet</h2>
+        <p>When you place an order, it will show up here with live status updates.</p>
+        <a class="btn btn--accent" routerLink="/products">
+          <app-icon name="sparkles" [size]="18" />
+          Start Shopping
+        </a>
+      </div>
+    }
+  </div>
+</section>

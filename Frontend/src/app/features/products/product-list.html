@@ -1,0 +1,49 @@
+<section class="pl section">
+  <div class="container">
+    <div class="pl__head">
+      <div>
+        <p class="eyebrow">Bansikunj Bakery</p>
+        <h1 class="pl__title">{{ categoryName() }}</h1>
+        <p class="pl__subtitle">{{ categoryDescription() }}</p>
+      </div>
+
+      <label class="pl__sort">
+        <app-icon name="filter" [size]="16" />
+        <select
+          class="pl__select"
+          [value]="sort()"
+          (change)="sort.set($any($event.target).value)"
+          aria-label="Sort products"
+        >
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (productService.loading()) {
+      <div class="grid grid--products">
+        @for (item of skeleton; track item) {
+          <div class="pl__skeleton" aria-hidden="true"></div>
+        }
+      </div>
+    } @else if (products().length) {
+      <div class="grid grid--products fade-in">
+        @for (product of products(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </div>
+    } @else {
+      <div class="pl__empty">
+        <app-icon name="box" [size]="48" />
+        <h2>No cookies here yet</h2>
+        <p>We're baking a fresh batch. Check back soon or browse the full range.</p>
+        <a class="btn btn--accent" routerLink="/products">
+          <app-icon name="bag" [size]="18" />
+          Browse All Cookies
+        </a>
+      </div>
+    }
+  </div>
+</section>

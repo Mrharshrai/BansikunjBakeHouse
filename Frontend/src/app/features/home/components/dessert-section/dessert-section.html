@@ -1,0 +1,40 @@
+<section class="dessert-section section">
+  <div class="container">
+    <div class="dessert-section__head">
+      <div class="section-head section-head--left dessert-section__heading">
+        <span class="eyebrow dessert-section__eyebrow">Sweet Treats</span>
+        <h2 class="dessert-section__title">Desserts Worth the Cravings</h2>
+        <p class="dessert-section__subtitle">Lava cakes, fudgy brownies, macarons and more — baked to impress.</p>
+      </div>
+
+      <a routerLink="/category/desserts" class="btn btn--light">
+        View All Desserts
+        <app-icon name="arrow-right" [size]="16" />
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="hscroll">
+        <div class="hscroll__track">
+          @for (item of skeleton; track item) {
+            <div class="hscroll__item">
+              <div class="dessert-skeleton"></div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="hscroll">
+        <div class="hscroll__track">
+          @for (product of products(); track product.id) {
+            <div class="hscroll__item">
+              <app-product-card [product]="product" />
+            </div>
+          } @empty {
+            <p class="dessert-section__empty">More desserts coming soon.</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</section>

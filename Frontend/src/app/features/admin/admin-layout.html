@@ -1,0 +1,28 @@
+<section class="admin section">
+  <div class="container">
+    <div class="section-head section-head--left">
+      <p class="eyebrow">Bansikunj Admin</p>
+      <h1 class="section-head__title">Manage your bakery</h1>
+    </div>
+
+    <nav class="admin__tabs">
+      <a
+        class="admin__tab"
+        routerLink="products"
+        routerLinkActive="admin__tab--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <app-icon name="bag" [size]="18" />
+        Products
+      </a>
+      <a class="admin__tab" routerLink="orders" routerLinkActive="admin__tab--active">
+        <app-icon name="box" [size]="18" />
+        Orders
+      </a>
+    </nav>
+
+    <div class="admin__content fade-in">
+      <router-outlet />
+    </div>
+  </div>
+</section>

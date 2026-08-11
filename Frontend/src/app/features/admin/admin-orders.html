@@ -1,0 +1,57 @@
+<div class="ao">
+  @if (orderService.loading()) {
+    <app-loader text="Loading orders…" />
+  } @else if (orders().length) {
+    <div class="ao__list">
+      @for (order of orders(); track order.id) {
+        <article class="ao__order">
+          <header class="ao__head">
+            <div>
+              <strong>{{ order.id }}</strong>
+              <span>{{ order.createdAt | date: 'medium' }}</span>
+            </div>
+            <span class="badge {{ badgeFor(order.status) }}">{{ order.status }}</span>
+          </header>
+
+          <div class="ao__body">
+            <div class="ao__customer">
+              <p>
+                <app-icon name="user" [size]="15" />
+                {{ order.customerName }}
+              </p>
+              <p>
+                <app-icon name="map-pin" [size]="15" />
+                {{ order.address }}
+              </p>
+              <p>
+                <app-icon name="credit-card" [size]="15" />
+                {{ order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Paid Online' }}
+              </p>
+            </div>
+
+            <div class="ao__items">
+              @for (item of order.items; track item.product.id) {
+                <div class="ao__item">
+                  <span>{{ item.quantity }} ×</span>
+                  <strong>{{ item.product.name }}</strong>
+                  <em>&#8377;{{ item.lineTotal }}</em>
+                </div>
+              }
+            </div>
+
+            <div class="ao__total">
+              <span>Order total</span>
+              <strong>&#8377;{{ order.total }}</strong>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="ao__empty">
+      <app-icon name="box" [size]="48" />
+      <h2>No orders yet</h2>
+      <p>Orders placed by customers will appear here.</p>
+    </div>
+  }
+</div>

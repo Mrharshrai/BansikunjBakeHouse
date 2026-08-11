@@ -1,0 +1,43 @@
+<main class="home">
+  <app-hero />
+
+  <app-category-section />
+
+  <app-product-section
+    eyebrow="Most Loved"
+    title="Best-Selling Cookies"
+    subtitle="The flavours our customers can't stop re-ordering."
+    link="/category/bestsellers"
+    [products]="bestsellers()"
+    [loading]="productService.loading()"
+  />
+
+  <app-product-section
+    eyebrow="Freshly Baked"
+    title="Soft & Chewy Cookies"
+    subtitle="Gooey centres, crisp edges and big flavour in every single bite."
+    link="/category/soft-chewy"
+    [products]="softChewy()"
+    [loading]="productService.loading()"
+    [cream]="true"
+  />
+
+  <app-product-section
+    eyebrow="Gourmet Range"
+    title="Premium Cookies"
+    subtitle="Belgian chocolate, roasted nuts and handcrafted indulgence."
+    link="/category/premium"
+    [products]="premium()"
+    [loading]="productService.loading()"
+  />
+
+  <app-dessert-section [products]="desserts()" [loading]="productService.loading()" />
+
+  <app-gift-section />
+
+  <app-make-own-section />
+
+  <app-testimonials-section />
+
+  <app-newsletter-section />
+</main>

@@ -1,0 +1,45 @@
+<section class="gift-section section">
+  <div class="container">
+    <div class="gift-section__banner">
+      <div class="gift-section__content">
+        <span class="badge badge--primary">Gifting Specials</span>
+        <h2 class="gift-section__title">Beautiful Gift Boxes for Every Occasion</h2>
+        <p class="gift-section__subtitle">
+          Birthdays, festivals, corporate surprises or a simple “thinking of you” — our hand-packed
+          hampers make every moment feel special.
+        </p>
+
+        <ul class="gift-section__points">
+          <li>
+            <app-icon name="check-circle" [size]="18" />
+            <span>Beautiful keepsake boxes & custom notes</span>
+          </li>
+          <li>
+            <app-icon name="check-circle" [size]="18" />
+            <span>Freshly baked & delivered across India</span>
+          </li>
+          <li>
+            <app-icon name="check-circle" [size]="18" />
+            <span>Bulk & corporate gifting options</span>
+          </li>
+        </ul>
+
+        <div class="gift-section__actions">
+          <a routerLink="/category/gifts" class="btn btn--primary btn--lg">
+            Shop Gift Boxes
+            <app-icon name="arrow-right" [size]="18" />
+          </a>
+          <a routerLink="/products" [queryParams]="{ tag: 'festive' }" class="btn btn--gold-outline btn--lg">
+            Festive Bulk Gifting
+          </a>
+        </div>
+      </div>
+
+      <div class="gift-section__visual">
+        <img class="gift-section__img gift-section__img--main" src="assets/images/products/gift-box.jpg" alt="Premium gift box" />
+        <img class="gift-section__img gift-section__img--side" src="assets/images/products/cookie-tub.jpg" alt="Cookie tub" />
+        <img class="gift-section__img gift-section__img--float" src="assets/images/products/macaron-box.jpg" alt="Macarons" />
+      </div>
+    </div>
+  </div>
+</section>

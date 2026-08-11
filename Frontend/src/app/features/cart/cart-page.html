@@ -1,0 +1,117 @@
+<section class="cart section">
+  <div class="container">
+    <div class="section-head section-head--left">
+      <p class="eyebrow">Your selection</p>
+      <h1 class="section-head__title">Shopping Cart</h1>
+    </div>
+
+    @if (cart.items().length) {
+      <div class="cart__grid">
+        <div class="cart__items">
+          <div class="cart__items-head">
+            <span>{{ cart.items().length }} item{{ cart.items().length === 1 ? '' : 's' }}</span>
+            <a class="cart__continue" routerLink="/products">Continue shopping</a>
+          </div>
+
+          @for (item of cart.items(); track item.product.id) {
+            <div class="cart__item fade-in">
+              <a class="cart__thumb" [routerLink]="['/products', item.product.id]">
+                <img [src]="item.product.image" [alt]="item.product.name" />
+              </a>
+
+              <div class="cart__meta">
+                <a class="cart__name" [routerLink]="['/products', item.product.id]">
+                  {{ item.product.name }}
+                </a>
+                <span class="cart__sub">{{ item.product.weight ?? item.product.categoryName }}</span>
+                <div class="cart__price">
+                  <span class="price price--sm">&#8377;{{ item.product.price }}</span>
+                  @if (item.product.mrp && item.product.mrp > item.product.price) {
+                    <span class="price price--mrp">&#8377;{{ item.product.mrp }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="cart__qty">
+                <app-quantity-stepper
+                  [value]="item.quantity"
+                  [small]="true"
+                  (valueChange)="setQuantity(item.product.id, $event)"
+                />
+              </div>
+
+              <div class="cart__line">
+                <span class="cart__line-label">Subtotal</span>
+                <span class="price">&#8377;{{ item.lineTotal }}</span>
+              </div>
+
+              <button
+                class="icon-btn icon-btn--small cart__remove"
+                (click)="remove(item.product.id)"
+                aria-label="Remove {{ item.product.name }}"
+              >
+                <app-icon name="trash" [size]="16" />
+              </button>
+            </div>
+          }
+        </div>
+
+        <aside class="cart__summary">
+          <h2 class="cart__summary-title">Order Summary</h2>
+
+          <div class="cart__free">
+            @if (amountToFreeDelivery()) {
+              <p>
+                Add <strong>&#8377;{{ amountToFreeDelivery() }}</strong> more to get
+                <strong>free delivery</strong>
+              </p>
+            } @else {
+              <p>You've unlocked <strong>free delivery</strong>!</p>
+            }
+            <div class="cart__progress">
+              <span class="cart__progress-bar" [style.width.%]="freeDeliveryProgress()"></span>
+            </div>
+          </div>
+
+          <dl class="cart__totals">
+            <div>
+              <dt>Subtotal</dt>
+              <dd>&#8377;{{ cart.subtotal() }}</dd>
+            </div>
+            <div>
+              <dt>Discount</dt>
+              <dd class="cart__save">-&#8377;{{ cart.discount() }}</dd>
+            </div>
+            <div>
+              <dt>Delivery</dt>
+              <dd>{{ cart.deliveryCharge() ? '&#8377;' + cart.deliveryCharge() : 'FREE' }}</dd>
+            </div>
+            <div class="cart__grand">
+              <dt>Total</dt>
+              <dd>&#8377;{{ cart.total() }}</dd>
+            </div>
+          </dl>
+
+          <a class="btn btn--accent btn--lg btn--block" routerLink="/checkout">
+            <app-icon name="lock" [size]="18" />
+            Proceed to Checkout
+          </a>
+          <p class="cart__secure">
+            <app-icon name="shield" [size]="14" />
+            Secure checkout &amp; easy returns
+          </p>
+        </aside>
+      </div>
+    } @else {
+      <div class="cart__empty">
+        <app-icon name="bag" [size]="56" />
+        <h2>Your cart is empty</h2>
+        <p>Looks like you haven't added anything yet. Let's fix that.</p>
+        <a class="btn btn--accent" routerLink="/products">
+          <app-icon name="sparkles" [size]="18" />
+          Shop Delicious Cookies
+        </a>
+      </div>
+    }
+  </div>
+</section>

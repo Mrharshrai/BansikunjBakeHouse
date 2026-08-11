@@ -1,0 +1,131 @@
+<header class="header">
+  <div class="container header__top">
+    <a routerLink="/" class="header__brand" (click)="mobileOpen.set(false)">
+      <img src="assets/images/logo.png" alt="Bansikunj Cookies" class="header__logo" />
+      <span class="header__brand-text">
+        <span class="header__brand-name">Bansikunj</span>
+        <span class="header__brand-tag">Freshly Baked Cookies</span>
+      </span>
+    </a>
+
+    <div class="header__search" [class.header__search--open]="searchOpen()">
+      <div class="header__search-box">
+        <button type="button" class="header__search-icon" (click)="submitSearch()" aria-label="Search">
+          <app-icon name="search" [size]="20" />
+        </button>
+        <input
+          class="header__search-input"
+          type="search"
+          placeholder="Search cookies, desserts, gifts…"
+          [formControl]="searchControl"
+          (keydown.enter)="submitSearch()"
+          (focus)="showSuggestions.set(true)"
+          (blur)="hideSuggestionsSoon()"
+          aria-label="Search products"
+        />
+        @if (searchControl.value) {
+          <button type="button" class="header__search-clear" (click)="searchControl.setValue('')" aria-label="Clear search">
+            <app-icon name="close" [size]="16" />
+          </button>
+        }
+
+        @if (showSuggestions() && suggestions().length) {
+          <div class="header__suggestions">
+            @for (product of suggestions(); track product.id) {
+              <button type="button" class="header__suggestion" (mousedown)="goToSuggestion(product)">
+                <img class="header__suggestion-img" [src]="product.image" alt="" width="40" height="40" loading="lazy" />
+                <span class="header__suggestion-body">
+                  <span class="header__suggestion-name">{{ product.name }}</span>
+                  <span class="header__suggestion-cat">{{ product.categoryName }}</span>
+                </span>
+                <span class="price price--sm">₹{{ product.price }}</span>
+              </button>
+            }
+            <button type="button" class="header__suggestion header__suggestion--all" (mousedown)="submitSearch()">
+              View all results
+              <app-icon name="arrow-right" [size]="16" />
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="header__actions">
+      <button
+        type="button"
+        class="header__action header__theme-btn"
+        (click)="theme.toggle()"
+        [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+        [attr.title]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <app-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="22" />
+      </button>
+
+      @if (auth.isAuthenticated()) {
+        <a class="header__action" routerLink="/account">
+          <app-icon name="user" [size]="22" />
+          <span class="header__action-text">
+            <span class="header__action-label">Hello,</span>
+            <span class="header__action-value">{{ auth.user()?.name }}</span>
+          </span>
+        </a>
+        <button type="button" class="header__action header__action--logout" (click)="logout()" aria-label="Sign out">
+          <app-icon name="logout" [size]="20" />
+        </button>
+      } @else {
+        <a class="header__action" routerLink="/login">
+          <app-icon name="user" [size]="22" />
+          <span class="header__action-text">
+            <span class="header__action-label">Hello,</span>
+            <span class="header__action-value">Account</span>
+          </span>
+        </a>
+      }
+
+      <button type="button" class="header__action" (click)="cart.openDrawer()" aria-label="Open cart">
+        <span class="header__action-icon">
+          <app-icon name="bag" [size]="22" />
+          @if (cart.count()) {
+            <span class="header__cart-badge">{{ cart.count() }}</span>
+          }
+        </span>
+        <span class="header__action-text">
+          <span class="header__action-label">My</span>
+          <span class="header__action-value">Cart</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="header__mobile-btns">
+      <button
+        type="button"
+        class="icon-btn header__theme-btn"
+        (click)="theme.toggle()"
+        [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+        [attr.title]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <app-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="20" />
+      </button>
+      <button type="button" class="icon-btn" (click)="searchOpen.set(!searchOpen())" aria-label="Toggle search">
+        <app-icon name="search" [size]="20" />
+      </button>
+      <button type="button" class="icon-btn header__mobile-cart" (click)="cart.openDrawer()" aria-label="Open cart">
+        <app-icon name="bag" [size]="20" />
+        @if (cart.count()) {
+          <span class="header__cart-badge header__cart-badge--mobile">{{ cart.count() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="mobileOpen.set(!mobileOpen())"
+        [attr.aria-expanded]="mobileOpen()"
+        [attr.aria-label]="mobileOpen() ? 'Close menu' : 'Open menu'"
+      >
+        <app-icon [name]="mobileOpen() ? 'close' : 'menu'" [size]="22" />
+      </button>
+    </div>
+  </div>
+
+  <app-navbar [open]="mobileOpen()" (openChange)="mobileOpen.set($event)" />
+</header>

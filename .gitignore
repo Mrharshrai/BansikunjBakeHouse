@@ -1,0 +1,23 @@
+    # Dependencies
+node_modules/
+
+# Build output
+dist/
+out-tsc/
+bazel-out/
+
+# Angular cache
+.angular/cache/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/

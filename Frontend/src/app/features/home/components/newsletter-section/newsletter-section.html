@@ -1,0 +1,45 @@
+<section class="newsletter section">
+  <div class="container">
+    <div class="newsletter__card">
+      @if (subscribed()) {
+        <div class="newsletter__success">
+          <div class="newsletter__success-icon">
+            <app-icon name="check-circle" [size]="38" />
+          </div>
+          <h3>You're on the list!</h3>
+          <p>Sweet surprises, fresh-batch alerts and exclusive offers are headed your way. Watch your inbox.</p>
+        </div>
+      } @else {
+        <div class="newsletter__content">
+          <span class="eyebrow">Get 10% Off</span>
+          <h2 class="newsletter__title">Join the Cookie Club</h2>
+          <p class="newsletter__subtitle">
+            Subscribe for exclusive deals, new flavours and a secret 10% discount on your first order.
+          </p>
+        </div>
+
+        <form class="newsletter__form" (ngSubmit)="subscribe()" novalidate>
+          <div class="newsletter__field">
+            <input
+              class="form-control newsletter__input"
+              type="email"
+              placeholder="Enter your email address"
+              [formControl]="email"
+              aria-label="Email address"
+            />
+            <button type="submit" class="btn btn--primary newsletter__btn" [disabled]="submitting()">
+              {{ submitting() ? 'Subscribing…' : 'Subscribe' }}
+            </button>
+          </div>
+          @if (email.invalid && email.touched) {
+            <p class="form-error newsletter__error">
+              <app-icon name="alert" [size]="15" />
+              Please enter a valid email address.
+            </p>
+          }
+          <p class="newsletter__note">No spam, just cookies. Unsubscribe anytime.</p>
+        </form>
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,50 @@
+<section class="make-own section">
+  <div class="container">
+    <div class="make-own__inner">
+      <div class="make-own__content">
+        <span class="eyebrow">Build Your Own</span>
+        <h2 class="make-own__title">Make Your Own Cookie Tub</h2>
+        <p class="make-own__subtitle">
+          Pick a base dough, add your favourite mix-ins, and we'll bake & deliver a tub made exactly the
+          way you like it. For kids' parties, desks and celebrations — it's always a hit.
+        </p>
+
+        <div class="make-own__steps">
+          <div class="make-own__step">
+            <span class="make-own__step-num">1</span>
+            <div>
+              <strong>Choose your base</strong>
+              <span>Chocolate chip, dark, butter or sugar dough</span>
+            </div>
+          </div>
+          <div class="make-own__step">
+            <span class="make-own__step-num">2</span>
+            <div>
+              <strong>Add your mix-ins</strong>
+              <span>Chunks, nuts, caramel, marshmallows & more</span>
+            </div>
+          </div>
+          <div class="make-own__step">
+            <span class="make-own__step-num">3</span>
+            <div>
+              <strong>We bake & deliver</strong>
+              <span>Freshly baked and shipped to your doorstep</span>
+            </div>
+          </div>
+        </div>
+
+        <a routerLink="/category/tubs" [queryParams]="{ tag: 'custom' }" class="btn btn--accent btn--lg make-own__cta">
+          Start Building Your Tub
+          <app-icon name="arrow-right" [size]="18" />
+        </a>
+      </div>
+
+      <div class="make-own__visual">
+        <img class="make-own__img" src="assets/images/products/cookie-tub.jpg" alt="Make your own cookie tub" />
+        <span class="make-own__chip make-own__chip--1"></span>
+        <span class="make-own__chip make-own__chip--2"></span>
+        <span class="make-own__nut"></span>
+      </div>
+    </div>
+  </div>
+</section>

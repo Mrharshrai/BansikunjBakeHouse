@@ -1,0 +1,199 @@
+.navbar {
+  background: var(--color-white);
+  border-top: 1px solid var(--color-border);
+}
+
+.navbar__list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.navbar__item {
+  position: relative;
+}
+
+.navbar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 18px;
+  font-weight: 800;
+  font-size: 14.5px;
+  letter-spacing: 0.3px;
+  color: var(--color-primary);
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+
+  &:hover {
+    color: var(--color-accent-600);
+    background: var(--color-cream-200);
+  }
+
+  &--active {
+    color: var(--color-accent-600);
+  }
+
+  &--highlight {
+    color: var(--color-accent-600);
+    text-decoration: underline;
+    text-decoration-color: var(--color-gold);
+    text-underline-offset: 6px;
+    text-decoration-thickness: 3px;
+  }
+
+  &--cta {
+    background: var(--color-accent);
+    color: var(--color-white);
+
+    &:hover {
+      background: var(--color-accent-600);
+      color: var(--color-white);
+    }
+  }
+}
+
+.navbar__dropdown {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  min-width: 250px;
+  background: var(--color-white);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease), visibility 0.25s;
+  z-index: 30;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+  }
+}
+
+.navbar__dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text);
+  transition: all 0.2s;
+
+  > .icon {
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .navbar__dropdown-arrow {
+    margin-left: auto;
+    color: var(--color-primary-200);
+  }
+
+  &:hover {
+    background: var(--color-cream-200);
+    color: var(--color-primary);
+
+    .navbar__dropdown-arrow {
+      color: var(--color-accent-600);
+    }
+  }
+}
+
+.navbar__item--dropdown:hover .navbar__dropdown,
+.navbar__dropdown--open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+// ---------------------------------------------------------------------------
+//  Mobile navigation (accordion panel below the header)
+// ---------------------------------------------------------------------------
+@media (max-width: 991px) {
+  .navbar {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 0;
+    overflow: hidden;
+    border-top: none;
+    box-shadow: none;
+    transition: max-height 0.4s var(--ease), box-shadow 0.4s var(--ease);
+    z-index: 40;
+
+    &.navbar--open {
+      max-height: calc(100vh - 70px);
+      overflow-y: auto;
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: var(--shadow-md);
+    }
+  }
+
+  .navbar__list {
+    flex-direction: column;
+    align-items: stretch;
+    padding-block: 8px;
+    gap: 0;
+  }
+
+  .navbar__item {
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .navbar__link {
+    width: 100%;
+    justify-content: space-between;
+    padding: 15px 8px;
+    font-size: 15.5px;
+    border-radius: 8px;
+
+    &--parent {
+      justify-content: space-between;
+    }
+  }
+
+  .navbar__dropdown {
+    position: static;
+    transform: none;
+    min-width: 0;
+    border: none;
+    box-shadow: none;
+    background: var(--color-cream-100);
+    border-radius: 0;
+    padding: 0 8px 8px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.35s var(--ease), padding 0.35s var(--ease);
+
+    &.navbar__dropdown--open {
+      max-height: 420px;
+      padding-top: 6px;
+    }
+  }
+
+  .navbar__dropdown-link {
+    padding: 12px 12px;
+  }
+}

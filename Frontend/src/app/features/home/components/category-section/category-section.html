@@ -1,0 +1,29 @@
+<section class="category-section section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Explore</span>
+      <h2 class="section-head__title">Shop by Category</h2>
+      <p class="section-head__subtitle">From soft & chewy classics to beautiful gift boxes — find your perfect bite.</p>
+    </div>
+
+    <div class="grid grid--categories">
+      @for (category of productService.categories(); track category.id) {
+        <a class="category-card" [routerLink]="['/category', category.slug]">
+          <div class="category-card__media">
+            <img [src]="category.image" [alt]="category.name" loading="lazy" />
+          </div>
+          <div class="category-card__body">
+            <h3 class="category-card__name">{{ category.name }}</h3>
+            <div class="category-card__meta">
+              <span>{{ countFor(category.slug) }} products</span>
+              <span class="category-card__link">
+                Shop now
+                <app-icon name="arrow-right" [size]="15" />
+              </span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>

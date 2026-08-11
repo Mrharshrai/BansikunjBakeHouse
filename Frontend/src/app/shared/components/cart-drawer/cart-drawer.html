@@ -1,0 +1,101 @@
+@if (cart.isOpen()) {
+  <div class="drawer-overlay" (click)="cart.closeDrawer()"></div>
+}
+
+<aside class="drawer" [class.drawer--open]="cart.isOpen()" [attr.aria-hidden]="!cart.isOpen()" aria-label="Shopping cart">
+  <div class="drawer__head">
+    <h3 class="drawer__title">
+      <app-icon name="bag" [size]="20" />
+      Your Cart
+      @if (cart.count()) {
+        <span class="drawer__count">{{ cart.count() }}</span>
+      }
+    </h3>
+    <button type="button" class="icon-btn icon-btn--small" (click)="cart.closeDrawer()" aria-label="Close cart">
+      <app-icon name="close" [size]="18" />
+    </button>
+  </div>
+
+  @if (cart.isEmpty()) {
+    <div class="drawer__empty">
+      <div class="drawer__empty-icon">
+        <app-icon name="bag" [size]="40" />
+      </div>
+      <h4>Your cart is empty</h4>
+      <p>Looks like you haven't added any freshly baked goodies yet.</p>
+      <a routerLink="/products" class="btn btn--primary btn--sm" (click)="cart.closeDrawer()">Start Shopping</a>
+    </div>
+  } @else {
+    <div class="drawer__items">
+      @for (item of cart.items(); track item.product.id) {
+        <div class="drawer__item">
+          <a [routerLink]="['/products', item.product.id]" (click)="cart.closeDrawer()" class="drawer__item-media">
+            <img [src]="item.product.image" [alt]="item.product.name" class="drawer__item-img" loading="lazy" />
+          </a>
+
+          <div class="drawer__item-info">
+            <a class="drawer__item-name" [routerLink]="['/products', item.product.id]" (click)="cart.closeDrawer()">
+              {{ item.product.name }}
+            </a>
+            <div class="drawer__item-price">
+              <span class="price price--sm">₹{{ item.product.price }}</span>
+              @if (item.product.mrp) {
+                <span class="price--mrp">₹{{ item.product.mrp }}</span>
+              }
+            </div>
+            <div class="drawer__item-actions">
+              <app-quantity-stepper
+                [value]="item.quantity"
+                [small]="true"
+                (valueChange)="cart.setQuantity(item.product.id, $event)"
+              />
+              <button type="button" class="drawer__remove" (click)="cart.remove(item.product.id)" aria-label="Remove item">
+                <app-icon name="trash" [size]="16" />
+              </button>
+            </div>
+          </div>
+
+          <span class="drawer__line-total">₹{{ item.lineTotal }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="drawer__foot">
+      <div class="drawer__free">
+        @if (remainingForFree() > 0) {
+          <p class="drawer__free-text">
+            <app-icon name="truck" [size]="16" />
+            Add <strong>₹{{ remainingForFree() }}</strong> more for <strong>FREE delivery</strong>
+          </p>
+        } @else {
+          <p class="drawer__free-text drawer__free-text--done">
+            <app-icon name="check-circle" [size]="16" />
+            Yay! You've unlocked <strong>FREE delivery</strong>
+          </p>
+        }
+        <div class="drawer__free-bar">
+          <span class="drawer__free-bar-fill" [style.width.%]="freeDeliveryProgress()"></span>
+        </div>
+      </div>
+
+      <div class="drawer__row">
+        <span>Subtotal</span>
+        <span class="price">₹{{ cart.subtotal() }}</span>
+      </div>
+      <div class="drawer__row">
+        <span>Delivery charge</span>
+        <span>{{ cart.deliveryCharge() ? '₹' + cart.deliveryCharge() : 'FREE' }}</span>
+      </div>
+      <div class="drawer__row drawer__row--total">
+        <span>Total</span>
+        <span class="price price--lg">₹{{ cart.total() }}</span>
+      </div>
+
+      <a routerLink="/checkout" class="btn btn--accent btn--block" (click)="cart.closeDrawer()">
+        Checkout
+        <app-icon name="arrow-right" [size]="17" />
+      </a>
+      <a routerLink="/cart" class="btn btn--outline btn--block" (click)="cart.closeDrawer()">View Full Cart</a>
+    </div>
+  }
+</aside>

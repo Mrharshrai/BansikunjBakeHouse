@@ -1,0 +1,149 @@
+.ap {
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+
+  &__stats {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__table {
+    background: var(--color-white);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 720px) {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    &--head {
+      background: var(--color-cream);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-muted);
+    }
+  }
+
+  &__product {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+      background: var(--color-cream-200);
+      border-radius: var(--radius-xs);
+      padding: 4px;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    strong {
+      font-size: 15px;
+      color: var(--color-primary);
+    }
+  }
+
+  &__bestseller {
+    align-self: flex-start;
+  }
+
+  &__cell {
+    font-size: 14px;
+    color: var(--color-muted);
+  }
+
+  &__price {
+    font-weight: 800;
+    color: var(--color-primary);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__delete {
+    background: var(--color-white);
+    border: 2px solid var(--color-border);
+    color: var(--color-muted);
+
+    &:hover {
+      background: var(--color-danger);
+      border-color: var(--color-danger);
+      color: var(--color-white);
+    }
+  }
+
+  &__empty {
+    padding: 32px;
+    text-align: center;
+    color: var(--color-muted);
+  }
+
+  &__editor {
+    margin-top: 28px;
+    background: var(--color-white);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+
+  &__editor-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  &__form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0 18px;
+
+    @media (min-width: 720px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &__checks {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  &__form-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}

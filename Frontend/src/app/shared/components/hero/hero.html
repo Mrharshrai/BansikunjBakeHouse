@@ -1,0 +1,69 @@
+<section class="hero">
+  <div class="hero__decor" aria-hidden="true">
+    <span class="hero__decor-ring hero__decor-ring--1"></span>
+    <span class="hero__decor-ring hero__decor-ring--2"></span>
+    <span class="hero__decor-ring hero__decor-ring--3"></span>
+    <img class="hero__decor-cookie hero__decor-cookie--1" src="assets/images/products/chocolate-chip.jpg" alt="" />
+    <img class="hero__decor-cookie hero__decor-cookie--2" src="assets/images/products/caramel-cashew.jpg" alt="" />
+    <img class="hero__decor-cookie hero__decor-cookie--3" src="assets/images/products/red-velvet.jpg" alt="" />
+    <span class="hero__decor-chip hero__decor-chip--1"></span>
+    <span class="hero__decor-chip hero__decor-chip--2"></span>
+    <span class="hero__decor-nut hero__decor-nut--1"></span>
+    <span class="hero__decor-nut hero__decor-nut--2"></span>
+  </div>
+
+  <div class="container hero__inner">
+    <div class="hero__content">
+      <span class="badge badge--primary hero__eyebrow">
+        <app-icon name="sparkles" [size]="14" />
+        100% Freshly Baked Today
+      </span>
+
+      <h1 class="hero__title">{{ title() }}</h1>
+      <p class="hero__subtitle">{{ subtitle() }}</p>
+
+      <div class="hero__actions">
+        <a routerLink="/products" class="btn btn--primary btn--lg hero__cta">
+          ORDER NOW
+          <app-icon name="arrow-right" [size]="18" />
+        </a>
+        <a routerLink="/category/bestsellers" class="btn btn--gold-outline btn--lg">Explore Bestsellers</a>
+      </div>
+
+      <div class="hero__stats">
+        <div class="hero__stat">
+          <strong>50,000+</strong>
+          <span>Happy customers</span>
+        </div>
+        <div class="hero__stat">
+          <strong>4.8 <app-icon name="star" [size]="14" /></strong>
+          <span>Average rating</span>
+        </div>
+        <div class="hero__stat">
+          <strong>7 days</strong>
+          <span>Fresh delivery</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__visual">
+      <img class="hero__image" [src]="image()" [alt]="imageAlt()" />
+
+      <div class="hero__float-card hero__float-card--1">
+        <app-icon name="truck" [size]="20" />
+        <div>
+          <strong>Free Delivery</strong>
+          <span>Orders above ₹499</span>
+        </div>
+      </div>
+
+      <div class="hero__float-card hero__float-card--2">
+        <app-icon name="check-circle" [size]="20" />
+        <div>
+          <strong>100% Fresh</strong>
+          <span>Baked to order</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

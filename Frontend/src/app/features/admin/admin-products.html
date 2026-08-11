@@ -1,0 +1,126 @@
+<div class="ap">
+  <div class="ap__bar">
+    <div class="ap__stats">
+      <span class="badge badge--primary">{{ productService.productCount() }} products</span>
+      <span class="badge badge--success">
+        {{ inStockCount() }} in stock
+      </span>
+    </div>
+    <button class="btn btn--accent btn--sm" (click)="openCreate()">
+      <app-icon name="plus" [size]="16" />
+      Add product
+    </button>
+  </div>
+
+  @if (productService.loading()) {
+    <app-loader text="Loading products…" />
+  } @else {
+    <div class="ap__table">
+      <div class="ap__row ap__row--head">
+        <span>Product</span>
+        <span>Category</span>
+        <span>Price</span>
+        <span>Stock</span>
+        <span>Actions</span>
+      </div>
+      @for (product of productService.products(); track product.id) {
+        <div class="ap__row">
+          <div class="ap__product">
+            <img [src]="product.image" [alt]="product.name" />
+            <div>
+              <strong>{{ product.name }}</strong>
+              @if (product.isBestSeller) {
+                <span class="badge badge--accent ap__bestseller">Bestseller</span>
+              }
+            </div>
+          </div>
+          <span class="ap__cell">{{ product.categoryName ?? product.category }}</span>
+          <span class="ap__cell ap__price">&#8377;{{ product.price }}</span>
+          <span class="ap__cell">
+            <span class="badge" [class.badge--success]="product.inStock" [class.badge--danger]="!product.inStock">
+              {{ product.inStock ? 'In stock' : 'Out' }}
+            </span>
+          </span>
+          <div class="ap__actions">
+            <button class="icon-btn icon-btn--small" (click)="openEdit(product)" aria-label="Edit {{ product.name }}">
+              <app-icon name="edit" [size]="15" />
+            </button>
+            <button class="icon-btn icon-btn--small ap__delete" (click)="delete(product)" aria-label="Delete {{ product.name }}">
+              <app-icon name="trash" [size]="15" />
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <p class="ap__empty">No products yet — add your first one!</p>
+      }
+    </div>
+  }
+
+  @if (editorOpen()) {
+    <div class="ap__editor fade-in">
+      <h2 class="ap__editor-title">
+        {{ editingId() ? 'Edit product' : 'Add a new product' }}
+      </h2>
+
+      <form class="ap__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="form-group">
+          <label for="ap-name">Name</label>
+          <input class="form-control" id="ap-name" formControlName="name" placeholder="e.g. Belgian Dark Chunk" />
+        </div>
+        <div class="form-group">
+          <label for="ap-desc">Description</label>
+          <textarea class="form-control" id="ap-desc" formControlName="description" placeholder="Short tasty description"></textarea>
+        </div>
+        <div class="ap__form-row">
+          <div class="form-group">
+            <label for="ap-price">Price (&#8377;)</label>
+            <input class="form-control" id="ap-price" type="number" formControlName="price" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="ap-mrp">MRP (&#8377;, optional)</label>
+            <input class="form-control" id="ap-mrp" type="number" formControlName="mrp" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="ap-category">Category</label>
+            <select class="form-control" id="ap-category" formControlName="category">
+              @for (category of productService.categories(); track category.slug) {
+                <option [value]="category.slug">{{ category.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ap-image">Image path</label>
+          <input class="form-control" id="ap-image" formControlName="image" placeholder="assets/images/products/chocolate-chip.jpg" />
+        </div>
+        <div class="ap__form-row">
+          <div class="form-group">
+            <label for="ap-weight">Weight</label>
+            <input class="form-control" id="ap-weight" formControlName="weight" placeholder="e.g. 12 cookies • 480g" />
+          </div>
+          <div class="form-group">
+            <label for="ap-tags">Tags (comma separated)</label>
+            <input class="form-control" id="ap-tags" formControlName="tags" placeholder="nuts, chocolate, vegan" />
+          </div>
+        </div>
+        <div class="ap__checks">
+          <label class="checkbox">
+            <input type="checkbox" formControlName="isBestSeller" />
+            Mark as bestseller
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" formControlName="inStock" />
+            In stock
+          </label>
+        </div>
+
+        <div class="ap__form-actions">
+          <button class="btn btn--primary" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Create product' }}
+          </button>
+          <button class="btn btn--outline" type="button" (click)="cancel()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

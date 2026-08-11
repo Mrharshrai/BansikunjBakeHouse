@@ -1,0 +1,28 @@
+<section class="testimonials section section--cream">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Happy Customers</span>
+      <h2 class="section-head__title">What Cookie Lovers Say</h2>
+      <p class="section-head__subtitle">Thousands of 5-star bakes delivered — here's a taste of the love.</p>
+    </div>
+
+    <div class="testimonials__grid">
+      @for (testimonial of testimonials; track testimonial.id) {
+        <figure class="testimonial">
+          <div class="testimonial__quote">
+            <app-icon name="sparkles" [size]="18" />
+          </div>
+          <app-rating [value]="testimonial.rating" [showValue]="false" />
+          <blockquote class="testimonial__text">“{{ testimonial.text }}”</blockquote>
+          <figcaption class="testimonial__author">
+            <span class="testimonial__avatar">{{ testimonial.name.charAt(0) }}</span>
+            <div>
+              <strong>{{ testimonial.name }}</strong>
+              <span>{{ testimonial.location }}</span>
+            </div>
+          </figcaption>
+        </figure>
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" rx="26" fill="#F4E6CE"/>
+  <circle cx="52" cy="350" r="90" fill="#E8CFA0" opacity="0.5"/>
+  <circle cx="360" cy="40" r="110" fill="#B57E38" opacity="0.16"/>
+  <circle cx="360" cy="360" r="60" fill="#E8CFA0" opacity="0.4"/>
+  <ellipse cx="200" cy="352" rx="128" ry="18" fill="#5C3A21" opacity="0.14"/>
+  <ellipse cx="200" cy="212" rx="124" ry="116" fill="#D9A45B"/>
+  <ellipse cx="200" cy="212" rx="124" ry="116" fill="none" stroke="#B57E38" stroke-width="5"/>
+  <g fill="#B57E38" opacity="0.35">
+    <circle cx="150" cy="180" r="4"/><circle cx="230" cy="160" r="3.5"/><circle cx="260" cy="230" r="4"/>
+    <circle cx="130" cy="240" r="3.5"/><circle cx="200" cy="290" r="4"/>
+  </g>
+  <g stroke="#B57E38" stroke-width="3" fill="none" opacity="0.55">
+    <path d="M150 186 l16 -10 M162 186 l16 -10 M174 186 l16 -10 M186 186 l16 -10 M198 186 l16 -10 M210 186 l16 -10 M222 186 l16 -10 M234 186 l16 -10"/>
+    <path d="M150 250 l16 -10 M162 250 l16 -10 M174 250 l16 -10 M186 250 l16 -10 M198 250 l16 -10 M210 250 l16 -10 M222 250 l16 -10 M234 250 l16 -10"/>
+  </g>
+  <g stroke="#B57E38" stroke-width="2" fill="none" opacity="0.4">
+    <path d="M148 210 h132 M146 222 h132 M144 234 h132"/>
+  </g>
+  <g fill="#C78A3E">
+    <ellipse cx="160" cy="178" rx="10" ry="8" transform="rotate(-25 160 178)"/>
+    <ellipse cx="238" cy="240" rx="10" ry="8" transform="rotate(35 238 240)"/>
+    <ellipse cx="206" cy="286" rx="9" ry="7" transform="rotate(20 206 286)"/>
+  </g>
+</svg>

@@ -1,0 +1,76 @@
+<section class="account section">
+  <div class="container">
+    <div class="section-head section-head--left">
+      <p class="eyebrow">My account</p>
+      <h1 class="section-head__title">Hello, {{ auth.user()?.name }}</h1>
+    </div>
+
+    <div class="account__grid">
+      <div class="account__profile">
+        <div class="account__avatar">
+          {{ (auth.user()?.name ?? 'C').charAt(0).toUpperCase() }}
+        </div>
+        <div class="account__details">
+          <strong>{{ auth.user()?.name }}</strong>
+          <span>{{ auth.user()?.email }}</span>
+          @if (auth.user()?.phone) {
+            <span>{{ auth.user()?.phone }}</span>
+          }
+        </div>
+        <button class="btn btn--outline btn--sm account__logout" (click)="logout()">
+          <app-icon name="logout" [size]="16" />
+          Logout
+        </button>
+      </div>
+
+      <div class="account__links">
+        <a class="account__link" routerLink="/orders">
+          <app-icon name="bag" [size]="24" />
+          <div>
+            <strong>My Orders</strong>
+            <span>{{ orderService.orders().length }} order{{ orderService.orders().length === 1 ? '' : 's' }}</span>
+          </div>
+          <app-icon name="chevron-right" [size]="20" class="account__link-arrow" />
+        </a>
+
+        <a class="account__link" routerLink="/products">
+          <app-icon name="heart" [size]="24" />
+          <div>
+            <strong>Wishlist</strong>
+            <span>{{ wishlist.count() }} saved item{{ wishlist.count() === 1 ? '' : 's' }}</span>
+          </div>
+          <app-icon name="chevron-right" [size]="20" class="account__link-arrow" />
+        </a>
+
+        <a class="account__link" routerLink="/products">
+          <app-icon name="sparkles" [size]="24" />
+          <div>
+            <strong>Shop Cookies</strong>
+            <span>Discover new flavours</span>
+          </div>
+          <app-icon name="chevron-right" [size]="20" class="account__link-arrow" />
+        </a>
+      </div>
+
+      <div class="account__panel">
+        <h2 class="account__panel-title">Recent orders</h2>
+        @if (orderService.orders().length) {
+          <div class="account__orders">
+            @for (order of orderService.orders().slice(0, 3); track order.id) {
+              <a class="account__order" routerLink="/orders">
+                <div>
+                  <strong>{{ order.id }}</strong>
+                  <span>{{ order.createdAt | date: 'mediumDate' }}</span>
+                </div>
+                <span class="badge badge--success">{{ order.status }}</span>
+                <span class="price price--sm">&#8377;{{ order.total }}</span>
+              </a>
+            }
+          </div>
+        } @else {
+          <p class="text-muted">No orders yet — time to treat yourself!</p>
+        }
+      </div>
+    </div>
+  </div>
+</section>

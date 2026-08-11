@@ -1,0 +1,158 @@
+@if (placedOrderId(); as orderId) {
+  <section class="checkout-done section">
+    <div class="container checkout-done__inner">
+      <div class="checkout-done__icon">
+        <app-icon name="check-circle" [size]="64" />
+      </div>
+      <h1>Order confirmed!</h1>
+      <p class="checkout-done__id">
+        Your order number is <strong>{{ orderId }}</strong>
+      </p>
+      <p class="checkout-done__text">
+        Thank you for choosing Bansikunj. We're baking your cookies fresh and will deliver
+        them right to your door. You can track it anytime from your orders page.
+      </p>
+      <div class="checkout-done__actions">
+        <a class="btn btn--primary" routerLink="/orders">
+          <app-icon name="bag" [size]="18" />
+          View My Orders
+        </a>
+        <a class="btn btn--outline" routerLink="/products">Continue Shopping</a>
+      </div>
+    </div>
+  </section>
+} @else {
+  <section class="checkout section">
+    <div class="container">
+      <div class="section-head section-head--left">
+        <p class="eyebrow">Almost there</p>
+        <h1 class="section-head__title">Checkout</h1>
+      </div>
+
+      @if (cart.items().length) {
+        <form class="checkout__grid" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="checkout__form">
+            <h2 class="checkout__heading">Delivery details</h2>
+
+            <div class="checkout__row">
+              <div class="form-group">
+                <label for="name">Full name</label>
+                <input class="form-control" id="name" type="text" formControlName="name" placeholder="Your name" />
+                @if (form.controls.name.invalid && form.controls.name.touched) {
+                  <span class="form-error"><app-icon name="alert" [size]="15" /> Please enter your name</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone</label>
+                <input class="form-control" id="phone" type="tel" formControlName="phone" placeholder="10-digit mobile number" />
+                @if (form.controls.phone.invalid && form.controls.phone.touched) {
+                  <span class="form-error"><app-icon name="alert" [size]="15" /> Enter a valid 10-digit number</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input class="form-control" id="email" type="email" formControlName="email" placeholder="you@example.com" />
+              @if (form.controls.email.invalid && form.controls.email.touched) {
+                <span class="form-error"><app-icon name="alert" [size]="15" /> Enter a valid email</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="line1">Address line 1</label>
+              <input class="form-control" id="line1" type="text" formControlName="line1" placeholder="House no., street, locality" />
+              @if (form.controls.line1.invalid && form.controls.line1.touched) {
+                <span class="form-error"><app-icon name="alert" [size]="15" /> Address is required</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="line2">Address line 2 (optional)</label>
+              <input class="form-control" id="line2" type="text" formControlName="line2" placeholder="Apartment, landmark" />
+            </div>
+
+            <div class="checkout__row checkout__row--3">
+              <div class="form-group">
+                <label for="city">City</label>
+                <input class="form-control" id="city" type="text" formControlName="city" placeholder="City" />
+              </div>
+              <div class="form-group">
+                <label for="state">State</label>
+                <input class="form-control" id="state" type="text" formControlName="state" placeholder="State" />
+              </div>
+              <div class="form-group">
+                <label for="pincode">Pincode</label>
+                <input class="form-control" id="pincode" type="text" formControlName="pincode" placeholder="6-digit" maxlength="6" />
+              </div>
+            </div>
+
+            <h2 class="checkout__heading">Payment method</h2>
+            <div class="checkout__payments">
+              <label class="checkout__payment" [class.checkout__payment--active]="form.value.paymentMethod === 'cod'">
+                <input type="radio" formControlName="paymentMethod" value="cod" />
+                <app-icon name="wallet" [size]="22" />
+                <div>
+                  <strong>Cash on Delivery</strong>
+                  <span>Pay when your order arrives</span>
+                </div>
+              </label>
+              <label class="checkout__payment" [class.checkout__payment--active]="form.value.paymentMethod === 'online'">
+                <input type="radio" formControlName="paymentMethod" value="online" />
+                <app-icon name="credit-card" [size]="22" />
+                <div>
+                  <strong>Pay Online</strong>
+                  <span>UPI, cards &amp; net banking</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <aside class="checkout__summary">
+            <h2 class="checkout__heading">Your order</h2>
+            <div class="checkout__lines">
+              @for (item of cart.items(); track item.product.id) {
+                <div class="checkout__line">
+                  <div class="checkout__line-info">
+                    <img [src]="item.product.image" [alt]="item.product.name" />
+                    <div>
+                      <strong>{{ item.product.name }}</strong>
+                      <span>Qty: {{ item.quantity }}</span>
+                    </div>
+                  </div>
+                  <span class="checkout__line-price">&#8377;{{ item.lineTotal }}</span>
+                </div>
+              }
+            </div>
+
+            <dl class="checkout__totals">
+              <div><dt>Subtotal</dt><dd>&#8377;{{ cart.subtotal() }}</dd></div>
+              <div><dt>Discount</dt><dd class="checkout__save">-&#8377;{{ cart.discount() }}</dd></div>
+              <div><dt>Delivery</dt><dd>{{ cart.deliveryCharge() ? '&#8377;' + cart.deliveryCharge() : 'FREE' }}</dd></div>
+              <div class="checkout__grand"><dt>Total</dt><dd>&#8377;{{ cart.total() }}</dd></div>
+            </dl>
+
+            <button class="btn btn--accent btn--lg btn--block" type="submit" [disabled]="submitting()">
+              <app-icon name="lock" [size]="18" />
+              {{ submitting() ? 'Placing order…' : 'Place Order · &#8377;' + cart.total() }}
+            </button>
+            <p class="checkout__secure">
+              <app-icon name="shield" [size]="14" />
+              Your details are safe with us
+            </p>
+          </aside>
+        </form>
+      } @else {
+        <div class="cart__empty">
+          <app-icon name="bag" [size]="56" />
+          <h2>Nothing to checkout</h2>
+          <p>Your cart is empty. Add some cookies first!</p>
+          <a class="btn btn--accent" routerLink="/products">
+            <app-icon name="sparkles" [size]="18" />
+            Shop Cookies
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+}

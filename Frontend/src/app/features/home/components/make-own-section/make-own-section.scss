@@ -1,0 +1,149 @@
+.make-own {
+  position: relative;
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+.make-own__inner {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+.make-own__title {
+  font-size: clamp(28px, 4vw, 42px);
+  color: var(--color-primary);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+
+.make-own__subtitle {
+  color: var(--color-muted);
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 520px;
+}
+
+.make-own__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-block: 28px;
+}
+
+.make-own__step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  .make-own__step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--color-gold);
+    color: var(--color-primary-800);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-xs);
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+  }
+
+  strong {
+    font-weight: 800;
+    color: var(--color-primary);
+    font-size: 15.5px;
+  }
+
+  span {
+    font-size: 13.5px;
+    color: var(--color-muted);
+  }
+}
+
+.make-own__visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.make-own__img {
+  width: min(420px, 90%);
+  border-radius: 20px;
+  object-fit: cover;
+  filter: drop-shadow(0 24px 34px rgba(92, 58, 33, 0.22));
+  animation: heroFloat 6s ease-in-out infinite;
+}
+
+.make-own__chip,
+.make-own__nut {
+  position: absolute;
+  border-radius: 50%;
+  animation: cardBob 4.5s ease-in-out infinite;
+}
+
+.make-own__chip {
+  width: 30px;
+  height: 24px;
+  background: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+  transform: rotate(20deg);
+
+  &--1 {
+    top: 14%;
+    left: 12%;
+  }
+
+  &--2 {
+    bottom: 16%;
+    right: 10%;
+    animation-delay: 0.7s;
+  }
+}
+
+.make-own__nut {
+  width: 22px;
+  height: 16px;
+  background: #c9944f;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: rotate(-28deg);
+  top: 26%;
+  right: 20%;
+  animation-delay: 1.2s;
+}
+
+@media (max-width: 991px) {
+  .make-own__inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .make-own__subtitle {
+    margin-inline: auto;
+  }
+
+  .make-own__steps {
+    align-items: center;
+    text-align: left;
+  }
+
+  .make-own__visual {
+    order: -1;
+  }
+
+  .make-own__img {
+    max-width: 300px;
+  }
+}
