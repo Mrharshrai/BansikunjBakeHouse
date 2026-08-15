@@ -1,6 +1,8 @@
 {
-  "framework": "angular",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/Frontend",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
