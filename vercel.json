@@ -1,4 +1,7 @@
 {
+  "rootDirectory": "Frontend",
+  "buildCommand": "ng build",
+  "outputDirectory": "dist/Frontend/browser",
   "rewrites": [
     {
       "source": "/(.*)",
