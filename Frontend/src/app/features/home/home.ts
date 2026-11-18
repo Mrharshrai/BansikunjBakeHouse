@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { ProductService } from '../../core/services/product.service';
 import { HeroComponent } from '../../shared/components/hero/hero';
 import { CategorySectionComponent } from './components/category-section/category-section';
@@ -12,21 +12,17 @@ import { NewsletterSectionComponent } from './components/newsletter-section/news
 @Component({
   selector: 'app-home',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    HeroComponent,
-    CategorySectionComponent,
-    ProductSectionComponent,
-    DessertSectionComponent,
-    GiftSectionComponent,
-    MakeOwnSectionComponent,
-    TestimonialsSectionComponent,
-    NewsletterSectionComponent,
-  ],
+  imports: [HeroComponent, CategorySectionComponent, ProductSectionComponent, DessertSectionComponent, GiftSectionComponent, MakeOwnSectionComponent, TestimonialsSectionComponent, NewsletterSectionComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
 export class HomeComponent {
   protected readonly productService = inject(ProductService);
+
+  constructor() {
+    this.productService.fetchCategories();
+    this.productService.fetchProducts({ limit: 50 });
+  }
 
   protected readonly bestsellers = computed(() => this.productService.bestSellers().slice(0, 8));
   protected readonly softChewy = computed(() => this.productService.byCategory('soft-chewy').slice(0, 8));

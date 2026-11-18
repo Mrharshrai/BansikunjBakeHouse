@@ -1,135 +1,31 @@
-@if (product(); as product) {
-  <section class="pd section">
-    <div class="container">
-      <nav class="pd__crumbs" aria-label="Breadcrumb">
-        <a routerLink="/">Home</a>
-        <app-icon name="chevron-right" [size]="14" />
-        <a routerLink="/products">Cookies</a>
-        <app-icon name="chevron-right" [size]="14" />
-        <span>{{ product.name }}</span>
-      </nav>
-
-      <div class="pd__grid">
-        <div class="pd__media">
-          <img [src]="product.image" [alt]="product.name" />
-          @if (discountPercent()) {
-            <span class="badge badge--accent pd__discount">-{{ discountPercent() }}%</span>
-          }
+﻿@if (loading()) {
+  <section class="pd section"><div class="container"><p>Loading product...</p></div></section>
+} @else if (product(); as product) {
+  <section class="pd section"><div class="container">
+    <nav class="pd__crumbs" aria-label="Breadcrumb"><a routerLink="/">Home</a><app-icon name="chevron-right" [size]="14" /><a routerLink="/products">Products</a><app-icon name="chevron-right" [size]="14" /><span>{{ product.name }}</span></nav>
+    <div class="pd__grid">
+      <div class="pd__media"><img [src]="product.image_url" [alt]="product.name" />@if (discountPercent()) { <span class="badge badge--accent pd__discount">-{{ discountPercent() }}%</span> }</div>
+      <div class="pd__info">
+        @if (product.category_name || product.category) { <span class="badge pd__category">{{ product.category_name || product.category }}</span> }
+        <h1 class="pd__name">{{ product.name }}</h1>
+        <div class="pd__rating"><app-rating [value]="asNumber(product.rating)" [count]="product.review_count" /><span class="pd__stock" [class.pd__stock--out]="!product.in_stock">{{ product.in_stock ? 'In Stock' : 'Out of Stock' }}</span></div>
+        <div class="pd__price"><span class="price price--lg">&#8377;{{ asNumber(product.price) }}</span>@if (asNumber(product.mrp) > asNumber(product.price)) { <span class="price price--mrp">&#8377;{{ asNumber(product.mrp) }}</span><span class="badge badge--success">You save &#8377;{{ asNumber(product.mrp)-asNumber(product.price) }}</span> }</div>
+        @if (product.weight) { <p class="pd__weight"><app-icon name="box" [size]="16" /> {{ product.weight }}</p> }
+        <p class="pd__desc">{{ product.description }}</p>
+        @if (product.tags.length) { <div class="pd__tags">@for (tag of product.tags; track tag) { <span class="badge">{{ tag }}</span> }</div> }
+        <div class="pd__actions">
+          <app-quantity-stepper [value]="quantity()" [disabled]="!product.in_stock" (valueChange)="quantity.set($event)" />
+          <button class="btn btn--primary pd__add" [disabled]="!product.in_stock" (click)="addToCart()"><app-icon name="bag" [size]="18" /> {{ product.in_stock ? 'Add to Cart' : 'Out of Stock' }}</button>
+          <button class="icon-btn pd__wish" [class.pd__wish--active]="wishlisted()" (click)="toggleWishlist()" aria-label="Toggle wishlist"><app-icon name="heart" [size]="20" /></button>
         </div>
-
-        <div class="pd__info">
-          @if (product.categoryName) {
-            <span class="badge pd__category">{{ product.categoryName }}</span>
-          }
-          <h1 class="pd__name">{{ product.name }}</h1>
-
-          <div class="pd__rating">
-            <app-rating [value]="product.rating" [count]="product.reviewCount" />
-            <span class="pd__stock" [class.pd__stock--out]="!product.inStock">
-              {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
-            </span>
-          </div>
-
-          <div class="pd__price">
-            <span class="price price--lg">&#8377;{{ product.price }}</span>
-            @if (product.mrp && product.mrp > product.price) {
-              <span class="price price--mrp">&#8377;{{ product.mrp }}</span>
-              <span class="badge badge--success">You save &#8377;{{ product.mrp - product.price }}</span>
-            }
-          </div>
-
-          @if (product.weight) {
-            <p class="pd__weight">
-              <app-icon name="box" [size]="16" />
-              {{ product.weight }}
-            </p>
-          }
-
-          <p class="pd__desc">{{ product.description }}</p>
-
-          @if (product.tags.length) {
-            <div class="pd__tags">
-              @for (tag of product.tags; track tag) {
-                <span class="badge">{{ tag }}</span>
-              }
-            </div>
-          }
-
-          <div class="pd__actions">
-            <app-quantity-stepper
-              [value]="quantity()"
-              [disabled]="!product.inStock"
-              (valueChange)="quantity.set($event)"
-            />
-            <button
-              class="btn btn--primary pd__add"
-              [disabled]="!product.inStock"
-              (click)="addToCart()"
-            >
-              <app-icon name="bag" [size]="18" />
-              {{ product.inStock ? 'Add to Cart' : 'Out of Stock' }}
-            </button>
-            <button
-              class="icon-btn pd__wish"
-              [class.pd__wish--active]="wishlisted()"
-              (click)="toggleWishlist()"
-              aria-label="Toggle wishlist"
-            >
-              <app-icon name="heart" [size]="20" />
-            </button>
-          </div>
-
-          <div class="pd__perks">
-            <div class="pd__perk">
-              <app-icon name="truck" [size]="20" />
-              <div>
-                <strong>Free delivery over &#8377;499</strong>
-                <span>Baked fresh, delivered next day</span>
-              </div>
-            </div>
-            <div class="pd__perk">
-              <app-icon name="gift" [size]="20" />
-              <div>
-                <strong>Gift-ready</strong>
-                <span>Beautiful tins &amp; hampers</span>
-              </div>
-            </div>
-            <div class="pd__perk">
-              <app-icon name="shield" [size]="20" />
-              <div>
-                <strong>100% natural</strong>
-                <span>No preservatives, no shortcuts</span>
-              </div>
-            </div>
-          </div>
+        <div class="pd__perks">
+          <div class="pd__perk"><app-icon name="shield" [size]="20" /><div><strong>Freshly baked</strong><span>Quality ingredients</span></div></div>
+          <div class="pd__perk"><app-icon name="truck" [size]="20" /><div><strong>Delivery & totals</strong><span>Calculated at checkout</span></div></div>
         </div>
       </div>
-
-      @if (related().length) {
-        <div class="pd__related">
-          <div class="section-head section-head--left">
-            <p class="eyebrow">You may also love</p>
-            <h2 class="section-head__title">More delicious picks</h2>
-          </div>
-          <div class="grid grid--products">
-            @for (item of related(); track item.id) {
-              <app-product-card [product]="item" />
-            }
-          </div>
-        </div>
-      }
     </div>
-  </section>
+    @if (related().length) { <div class="pd__related"><div class="section-head section-head--left"><p class="eyebrow">You may also love</p><h2 class="section-head__title">More picks</h2></div><div class="grid grid--products">@for (item of related(); track item.id) { <app-product-card [product]="item" /> }</div></div> }
+  </div></section>
 } @else {
-  <section class="pd-missing section">
-    <div class="container pd-missing__inner">
-      <app-icon name="alert" [size]="48" />
-      <h1>Cookie not found</h1>
-      <p>We couldn't find that product. It may have been removed from the shelf.</p>
-      <a class="btn btn--accent" routerLink="/products">
-        <app-icon name="bag" [size]="18" />
-        Browse Cookies
-      </a>
-    </div>
-  </section>
+  <section class="pd-missing section"><div class="container pd-missing__inner"><app-icon name="alert" [size]="48" /><h1>Product not found</h1><p>This product may be unavailable.</p><a class="btn btn--accent" routerLink="/products">Browse Products</a></div></section>
 }

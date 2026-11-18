@@ -1,35 +1,56 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-/**
- * Thin typed wrapper around Angular HttpClient.
- * All calls go through the base URL from environment.apiUrl
- * so the frontend can be pointed at any FastAPI backend.
- */
+export interface ApiEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+/** Central HTTP client. Unwraps backend `{success,message,data}` envelopes. */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.apiUrl;
 
-  get<T>(path: string, params?: HttpParams): Observable<T> {
-    return this.http.get<T>(`${this.baseUrl}${path}`, { params });
+  get<T>(path: string, params?: HttpParams | Record<string, string | number | boolean | undefined | null>): Observable<T> {
+    return this.http
+      .get<ApiEnvelope<T>>(`${this.baseUrl}${path}`, { params: this.toParams(params) })
+      .pipe(map((r) => r.data));
   }
 
-  post<T>(path: string, body: unknown): Observable<T> {
-    return this.http.post<T>(`${this.baseUrl}${path}`, body);
+  post<T>(path: string, body?: unknown): Observable<T> {
+    return this.http
+      .post<ApiEnvelope<T>>(`${this.baseUrl}${path}`, body ?? {})
+      .pipe(map((r) => r.data));
   }
 
-  put<T>(path: string, body: unknown): Observable<T> {
-    return this.http.put<T>(`${this.baseUrl}${path}`, body);
+  put<T>(path: string, body?: unknown): Observable<T> {
+    return this.http
+      .put<ApiEnvelope<T>>(`${this.baseUrl}${path}`, body ?? {})
+      .pipe(map((r) => r.data));
   }
 
-  patch<T>(path: string, body: unknown): Observable<T> {
-    return this.http.patch<T>(`${this.baseUrl}${path}`, body);
+  patch<T>(path: string, body?: unknown): Observable<T> {
+    return this.http
+      .patch<ApiEnvelope<T>>(`${this.baseUrl}${path}`, body ?? {})
+      .pipe(map((r) => r.data));
   }
 
   delete<T>(path: string): Observable<T> {
-    return this.http.delete<T>(`${this.baseUrl}${path}`);
+    return this.http
+      .delete<ApiEnvelope<T>>(`${this.baseUrl}${path}`)
+      .pipe(map((r) => r.data));
+  }
+
+  private toParams(params?: HttpParams | Record<string, string | number | boolean | undefined | null>): HttpParams | undefined {
+    if (!params || params instanceof HttpParams) return params;
+    let hp = new HttpParams();
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null && v !== '') hp = hp.set(k, String(v));
+    }
+    return hp;
   }
 }

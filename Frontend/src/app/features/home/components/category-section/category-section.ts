@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../../../core/services/product.service';
 import { IconComponent } from '../../../../shared/components/icon/icon';
@@ -12,8 +12,5 @@ import { IconComponent } from '../../../../shared/components/icon/icon';
 })
 export class CategorySectionComponent {
   protected readonly productService = inject(ProductService);
-
-  protected countFor(slug: string): number {
-    return this.productService.byCategory(slug).length;
-  }
+  protected countFor(slug: string): number { const c = this.productService.categories().find(x=>x.slug===slug); return c?.product_count ?? this.productService.byCategory(slug).length; }
 }

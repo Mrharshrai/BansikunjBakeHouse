@@ -1,17 +1,22 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+﻿import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 import { STORAGE } from '../constants/storage';
 
-/** Attaches the bearer token (if present) to every API request. */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
   const token = localStorage.getItem(STORAGE.authToken);
-
-  if (!token) {
-    return next(req);
-  }
-
-  const cloned = req.clone({
-    setHeaders: { Authorization: `Bearer ${token}` },
-  });
-
-  return next(cloned);
+  const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+  return next(authReq).pipe(
+    catchError((err: HttpErrorResponse) => {
+      if (err.status === 401) {
+        localStorage.removeItem(STORAGE.authToken);
+        localStorage.removeItem(STORAGE.refreshToken);
+        localStorage.removeItem(STORAGE.authUser);
+        if (!req.url.includes('/auth/login')) router.navigate(['/login']);
+      }
+      return throwError(() => err);
+    }),
+  );
 };

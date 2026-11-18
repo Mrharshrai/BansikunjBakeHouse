@@ -1,94 +1,79 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+﻿import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, map, tap } from 'rxjs';
 import { STORAGE } from '../constants/storage';
-import { AuthResponse, LoginPayload, RegisterPayload, User } from '../models/user.model';
+import { AuthBundle, LoginPayload, PasswordChangeRequest, RegisterPayload, Role, TokenBundle, UserOut, UserProfileUpdate, UserSummary } from '../models/user.model';
 import { ApiService } from './api.service';
-
-const DEMO_EMAIL = 'demo@bansikunj.in';
-const DEMO_PASSWORD = 'demo123';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(ApiService);
-
-  private readonly userSignal = signal<User | null>(this.readStoredUser());
-  private readonly loadingSignal = signal(false);
-
+  private readonly userSignal = signal<UserSummary | UserOut | null>(this.readUser());
   readonly user = this.userSignal.asReadonly();
-  readonly loading = this.loadingSignal.asReadonly();
-  readonly isAuthenticated = computed(() => this.userSignal() !== null);
+  readonly isAuthenticated = computed(() => !!localStorage.getItem(STORAGE.authToken) && !!this.userSignal());
+  readonly isAdmin = computed(() => this.userSignal()?.role === 'admin');
+  readonly role = computed<Role | null>(() => this.userSignal()?.role ?? null);
 
-  login(payload: LoginPayload): Observable<User> {
-    this.loadingSignal.set(true);
-    return this.api.post<AuthResponse>('/auth/login', payload).pipe(
-      catchError(() => this.mockLogin(payload)),
-      tap((response) => this.setSession(response)),
-      map((response) => response.user),
+  login(payload: LoginPayload): Observable<UserSummary> {
+    return this.api.post<AuthBundle>('/auth/login', payload).pipe(tap((b) => this.setSession(b)), map((b) => b.user));
+  }
+
+  register(payload: RegisterPayload): Observable<UserSummary> {
+    return this.api.post<AuthBundle>('/auth/register', payload).pipe(tap((b) => this.setSession(b)), map((b) => b.user));
+  }
+
+  refresh(): Observable<void> {
+    const refresh_token = localStorage.getItem(STORAGE.refreshToken);
+    if (!refresh_token) throw new Error('No refresh token');
+    return this.api.post<TokenBundle>('/auth/refresh', { refresh_token }).pipe(
+      tap((b) => { localStorage.setItem(STORAGE.authToken, b.tokens.access_token); localStorage.setItem(STORAGE.refreshToken, b.tokens.refresh_token); }),
+      map(() => undefined),
     );
   }
 
-  register(payload: RegisterPayload): Observable<User> {
-    this.loadingSignal.set(true);
-    return this.api.post<AuthResponse>('/auth/register', payload).pipe(
-      catchError(() => this.mockRegister(payload)),
-      tap((response) => this.setSession(response)),
-      map((response) => response.user),
-    );
+  me(): Observable<UserOut> {
+    return this.api.get<UserOut>('/users/me').pipe(tap((u) => this.setUser(u)));
   }
+
+  updateProfile(body: UserProfileUpdate): Observable<UserOut> {
+    return this.api.patch<UserOut>('/users/me', body).pipe(tap((u) => this.setUser(u)));
+  }
+
+  changePassword(body: PasswordChangeRequest) {
+    return this.api.post('/users/me/change-password', body);
+  }
+
+  forgotPassword(email: string) { return this.api.post('/auth/forgot-password', { email }); }
+  resetPassword(payload: { token: string; password: string }) { return this.api.post('/auth/reset-password', payload); }
+  verifyEmail(token: string) { return this.api.post('/auth/verify-email', { token }); }
+  resendVerification(email: string) { return this.api.post('/auth/resend-verification', { email }); }
 
   logout(): void {
+    const token = localStorage.getItem(STORAGE.authToken);
+    if (token) this.api.post('/auth/logout', {}).subscribe({ error: () => {} });
+    this.clearSession();
+  }
+
+  logoutAll(): void { this.api.post('/auth/logout-all', {}).subscribe({ error: () => {} }); this.clearSession(); }
+
+  private setSession(bundle: AuthBundle): void {
+    localStorage.setItem(STORAGE.authToken, bundle.tokens.access_token);
+    localStorage.setItem(STORAGE.refreshToken, bundle.tokens.refresh_token);
+    this.setUser(bundle.user);
+  }
+
+  private setUser(user: UserSummary | UserOut): void {
+    localStorage.setItem(STORAGE.authUser, JSON.stringify(user));
+    this.userSignal.set(user);
+  }
+
+  private clearSession(): void {
     localStorage.removeItem(STORAGE.authToken);
+    localStorage.removeItem(STORAGE.refreshToken);
     localStorage.removeItem(STORAGE.authUser);
     this.userSignal.set(null);
   }
 
-  /** Sign in silently for demo purposes (used on the login page). */
-  demoLogin(): Observable<User> {
-    return this.login({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
-  }
-
-  private setSession(response: AuthResponse): void {
-    localStorage.setItem(STORAGE.authToken, response.token);
-    localStorage.setItem(STORAGE.authUser, JSON.stringify(response.user));
-    this.userSignal.set(response.user);
-    this.loadingSignal.set(false);
-  }
-
-  // ---------------------------------------------------------------------------
-  //  Mock authentication used until the backend exists
-  // ---------------------------------------------------------------------------
-  private mockLogin(payload: LoginPayload): Observable<AuthResponse> {
-    const email = payload.email.trim().toLowerCase();
-    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const demoCredentials = email === DEMO_EMAIL && payload.password === DEMO_PASSWORD;
-
-    if (payload.password.length >= 6 && (validEmail || demoCredentials)) {
-      return of({
-        user: { id: 'u-demo', name: email.split('@')[0].replace(/[.\-_]/g, ' ') || 'Cookie Lover', email },
-        token: `mock-token-${Date.now()}`,
-      });
-    }
-
-    return throwError(() => new Error('Invalid email or password. Try demo@bansikunj.in / demo123'));
-  }
-
-  private mockRegister(payload: RegisterPayload): Observable<AuthResponse> {
-    const email = payload.email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || payload.password.length < 6) {
-      return throwError(() => new Error('Please enter a valid email and a password of 6+ characters.'));
-    }
-    return of({
-      user: { id: `u-${Date.now()}`, name: payload.name, email, phone: payload.phone },
-      token: `mock-token-${Date.now()}`,
-    });
-  }
-
-  private readStoredUser(): User | null {
-    try {
-      const raw = localStorage.getItem(STORAGE.authUser);
-      return raw ? (JSON.parse(raw) as User) : null;
-    } catch {
-      return null;
-    }
+  private readUser(): UserSummary | UserOut | null {
+    try { const r = localStorage.getItem(STORAGE.authUser); return r ? JSON.parse(r) : null; } catch { return null; }
   }
 }

@@ -1,202 +1,49 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { catchError, of } from 'rxjs';
-import { STORAGE } from '../constants/storage';
-import {
-  CartItem,
-  CartItemView,
-  CartSummary,
-  DELIVERY_CHARGE,
-  FREE_DELIVERY_THRESHOLD,
-} from '../models/cart.model';
-import { Product } from '../models/product.model';
+﻿import { Injectable, computed, inject, signal } from '@angular/core';
+import { tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
-import { ProductService } from './product.service';
+import { CartOut } from '../models/cart.model';
 
-/**
- * Cart state is localStorage-first (instant + works offline) with
- * best-effort sync to the FastAPI backend when a user is signed in.
- */
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
-  private readonly productService = inject(ProductService);
-
-  private readonly rawItems = signal<CartItem[]>(this.readStorage());
+  private readonly cartSignal = signal<CartOut>({ items: [], line_count: 0, item_count: 0, subtotal: '0.00', is_empty: true });
   private readonly drawerOpen = signal(false);
-
-  /** Enriched items joined with product catalogue. */
-  readonly items = computed<CartItemView[]>(() => {
-    const catalogue = this.productService.products();
-    return this.rawItems()
-      .map((raw) => {
-        const product = catalogue.find((p) => p.id === raw.productId);
-        return product
-          ? { product, quantity: raw.quantity, lineTotal: product.price * raw.quantity }
-          : null;
-      })
-      .filter((item): item is CartItemView => item !== null);
-  });
-
-  readonly count = computed(() => this.rawItems().reduce((sum, item) => sum + item.quantity, 0));
-  readonly subtotal = computed(() => this.items().reduce((sum, item) => sum + item.lineTotal, 0));
-  readonly discount = computed(() =>
-    this.items().reduce((sum, item) => {
-      const perUnit = item.product.mrp ? item.product.mrp - item.product.price : 0;
-      return sum + perUnit * item.quantity;
-    }, 0),
-  );
-  readonly deliveryCharge = computed(() => {
-    const subtotal = this.subtotal();
-    if (subtotal === 0 || subtotal >= FREE_DELIVERY_THRESHOLD) {
-      return 0;
-    }
-    return DELIVERY_CHARGE;
-  });
-  readonly total = computed(() => this.subtotal() + this.deliveryCharge());
-
+  private readonly loadingSignal = signal(false);
+  readonly cart = this.cartSignal.asReadonly();
+  readonly items = computed(() => this.cartSignal().items);
+  readonly count = computed(() => this.cartSignal().item_count);
+  readonly subtotal = computed(() => Number(this.cartSignal().subtotal || 0));
+  readonly discount = computed(() => 0);
+  readonly deliveryCharge = computed(() => 0);
+  readonly total = computed(() => this.subtotal());
+  readonly summary = computed(() => ({ subtotal: this.subtotal(), deliveryCharge: 0, discount: 0, total: this.total() }));
   readonly isOpen = this.drawerOpen.asReadonly();
-  readonly isEmpty = computed(() => this.rawItems().length === 0);
+  readonly isEmpty = computed(() => this.cartSignal().is_empty);
+  readonly loading = this.loadingSignal.asReadonly();
 
-  readonly summary = computed<CartSummary>(() => ({
-    subtotal: this.subtotal(),
-    deliveryCharge: this.deliveryCharge(),
-    discount: this.discount(),
-    total: this.total(),
-  }));
-
-  constructor() {
-    effect(() => {
-      localStorage.setItem(STORAGE.cart, JSON.stringify(this.rawItems()));
-    });
+  load(): void {
+    if (!this.auth.isAuthenticated()) { this.cartSignal.set({ items: [], line_count: 0, item_count: 0, subtotal: '0.00', is_empty: true }); return; }
+    this.loadingSignal.set(true);
+    this.api.get<CartOut>('/cart/items').subscribe({ next: (c) => { this.cartSignal.set(c); this.loadingSignal.set(false); }, error: () => this.loadingSignal.set(false) });
   }
 
-  add(product: Product, quantity = 1): void {
-    this.rawItems.update((items) => {
-      const existing = items.find((item) => item.productId === product.id);
-      if (existing) {
-        return items.map((item) =>
-          item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item,
-        );
-      }
-      return [...items, { productId: product.id, quantity }];
-    });
-    this.syncAdd(product.id, quantity);
+  add(product: { id: string } | string, quantity = 1) {
+    if (!this.auth.isAuthenticated()) return;
+    const product_id = typeof product === 'string' ? product : product.id;
+    this.api.post<CartOut>('/cart/items', { product_id, quantity }).subscribe({ next: (c) => this.cartSignal.set(c) });
   }
-
-  increment(productId: string): void {
-    this.rawItems.update((items) =>
-      items.map((item) => (item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item)),
-    );
-    this.syncUpdate(productId);
+  setQuantity(productId: string, quantity: number) {
+    if (!this.auth.isAuthenticated()) return;
+    if (quantity <= 0) { this.remove(productId); return; }
+    this.api.put<CartOut>(`/cart/items/${productId}`, { quantity }).subscribe({ next: (c) => this.cartSignal.set(c) });
   }
-
-  decrement(productId: string): void {
-    let removed = false;
-    this.rawItems.update((items) =>
-      items
-        .map((item) => {
-          if (item.productId !== productId) {
-            return item;
-          }
-          if (item.quantity <= 1) {
-            removed = true;
-            return null;
-          }
-          return { ...item, quantity: item.quantity - 1 };
-        })
-        .filter((item): item is CartItem => item !== null),
-    );
-    if (removed) {
-      this.syncRemove(productId);
-    } else {
-      this.syncUpdate(productId);
-    }
-  }
-
-  setQuantity(productId: string, quantity: number): void {
-    if (quantity <= 0) {
-      this.remove(productId);
-      return;
-    }
-    this.rawItems.update((items) =>
-      items.map((item) => (item.productId === productId ? { ...item, quantity } : item)),
-    );
-    this.syncUpdate(productId);
-  }
-
-  remove(productId: string): void {
-    this.rawItems.update((items) => items.filter((item) => item.productId !== productId));
-    this.syncRemove(productId);
-  }
-
-  clear(): void {
-    this.rawItems.set([]);
-  }
-
-  toApiItems(): CartItem[] {
-    return this.rawItems();
-  }
-
-  // ---------------------------------------------------------------------------
-  //  Drawer
-  // ---------------------------------------------------------------------------
-  openDrawer(): void {
-    this.drawerOpen.set(true);
-  }
-
-  closeDrawer(): void {
-    this.drawerOpen.set(false);
-  }
-
-  toggleDrawer(): void {
-    this.drawerOpen.update((open) => !open);
-  }
-
-  // ---------------------------------------------------------------------------
-  //  Best-effort API sync (silently ignored when backend is down)
-  // ---------------------------------------------------------------------------
-  private syncAdd(productId: string, quantity: number): void {
-    if (!this.auth.isAuthenticated()) {
-      return;
-    }
-    this.api
-      .post<CartItem>('/cart/items', { productId, quantity })
-      .pipe(catchError(() => of(null)))
-      .subscribe();
-  }
-
-  private syncUpdate(productId: string): void {
-    if (!this.auth.isAuthenticated()) {
-      return;
-    }
-    const item = this.rawItems().find((i) => i.productId === productId);
-    if (!item) {
-      return;
-    }
-    this.api
-      .put<CartItem>(`/cart/items/${productId}`, { quantity: item.quantity })
-      .pipe(catchError(() => of(null)))
-      .subscribe();
-  }
-
-  private syncRemove(productId: string): void {
-    if (!this.auth.isAuthenticated()) {
-      return;
-    }
-    this.api
-      .delete<unknown>(`/cart/items/${productId}`)
-      .pipe(catchError(() => of(null)))
-      .subscribe();
-  }
-
-  private readStorage(): CartItem[] {
-    try {
-      const raw = localStorage.getItem(STORAGE.cart);
-      return raw ? (JSON.parse(raw) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
-  }
+  increment(productId: string) { const i = this.items().find(x=>x.product_id===productId); if(i) this.setQuantity(productId, i.quantity+1); }
+  decrement(productId: string) { const i = this.items().find(x=>x.product_id===productId); if(i) this.setQuantity(productId, i.quantity-1); }
+  remove(productId: string) { if (!this.auth.isAuthenticated()) return; this.api.delete<CartOut>(`/cart/items/${productId}`).subscribe({ next: (c)=>this.cartSignal.set(c) }); }
+  clear() { if (!this.auth.isAuthenticated()) { this.cartSignal.set({ items: [], line_count: 0, item_count: 0, subtotal: '0.00', is_empty: true }); return; } this.api.delete<CartOut>('/cart/items').subscribe({ next: (c)=>this.cartSignal.set(c) }); }
+  openDrawer() { this.drawerOpen.set(true); }
+  closeDrawer() { this.drawerOpen.set(false); }
+  toggleDrawer() { this.drawerOpen.update(v=>!v); }
 }

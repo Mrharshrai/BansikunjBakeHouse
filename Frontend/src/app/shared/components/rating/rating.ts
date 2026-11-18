@@ -45,12 +45,12 @@ import { IconComponent } from '../icon/icon';
   ],
 })
 export class RatingComponent {
-  readonly value = input.required<number>();
+  readonly value = input.required<number | string>();
   readonly count = input<number>();
   readonly showValue = input<boolean>(true);
   readonly small = input<boolean>(false);
 
   protected readonly stars = computed<('full' | 'outline')[]>(() =>
-    Array.from({ length: 5 }, (_, i) => (i < Math.round(this.value()) ? 'full' : 'outline') as 'full' | 'outline'),
+    Array.from({ length: 5 }, (_, i) => (i < Math.round(Number(this.value() || 0)) ? 'full' : 'outline') as 'full' | 'outline'),
   );
 }

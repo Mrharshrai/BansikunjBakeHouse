@@ -1,26 +1,6 @@
-import { Product } from './product.model';
-
-/** Cart item as stored / sent to the API */
-export interface CartItem {
-  productId: string;
-  quantity: number;
+﻿import { Product } from './product.model';
+export interface CartItemOut {
+  product_id: string; quantity: number; unit_price: string; line_total: string;
+  is_available: boolean; available_stock: number; product?: Product | null;
 }
-
-/** Cart item enriched with product + computed line total for the UI */
-export interface CartItemView {
-  product: Product;
-  quantity: number;
-  lineTotal: number;
-}
-
-export interface CartSummary {
-  subtotal: number;
-  deliveryCharge: number;
-  discount: number;
-  total: number;
-}
-
-/** Flat delivery fee below the free-delivery threshold */
-export const DELIVERY_CHARGE = 99;
-/** Orders at or above this value ship free */
-export const FREE_DELIVERY_THRESHOLD = 499;
+export interface CartOut { items: CartItemOut[]; line_count: number; item_count: number; subtotal: string; is_empty: boolean; }

@@ -1,40 +1,18 @@
-<section class="product-section section" [class.product-section--cream]="cream()">
+﻿<section class="product-section section" [class.product-section--cream]="cream()">
   <div class="container">
     <div class="product-section__head">
       <div class="section-head section-head--left">
-        @if (eyebrow()) {
-          <span class="eyebrow">{{ eyebrow() }}</span>
-        }
+        @if (eyebrow()) { <span class="eyebrow">{{ eyebrow() }}</span> }
         <h2 class="section-head__title">{{ title() }}</h2>
-        @if (subtitle()) {
-          <p class="section-head__subtitle">{{ subtitle() }}</p>
-        }
+        @if (subtitle()) { <p class="section-head__subtitle">{{ subtitle() }}</p> }
       </div>
-
-      @if (link()) {
-        <a class="product-section__view-all" [routerLink]="link()">
-          {{ linkLabel() }}
-          <app-icon name="arrow-right" [size]="16" />
-        </a>
-      }
+      @if (link()) { <a class="product-section__view-all" [routerLink]="link()">{{ linkLabel() }} <app-icon name="arrow-right" [size]="16" /></a> }
     </div>
-
     @if (loading()) {
-      <div class="grid grid--products">
-        @for (item of skeleton; track item) {
-          <div class="skeleton-card">
-            <div class="skeleton-card__img"></div>
-            <div class="skeleton-card__lines"></div>
-          </div>
-        }
-      </div>
+      <div class="grid grid--products">@for (item of skeleton; track item) { <div class="skeleton-card"><div class="skeleton-card__img"></div><div class="skeleton-card__lines"></div></div> }</div>
     } @else {
       <div class="grid grid--products">
-        @for (product of products(); track product.id) {
-          <app-product-card [product]="product" />
-        } @empty {
-          <p class="product-section__empty">No products found yet — check back soon.</p>
-        }
+        @for (product of products(); track product.id) { <app-product-card [product]="product" /> } @empty { <p class="product-section__empty">No products found yet.</p> }
       </div>
     }
   </div>

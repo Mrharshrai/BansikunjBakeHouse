@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000/api',
-  useMockData: true,
+  apiUrl: 'https://bansikunj-api.onrender.com/api/v1',
+  
 };

@@ -1,184 +1,89 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, finalize, of, tap } from 'rxjs';
+﻿import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, map, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../mock/data.mock';
-import { Category, Product, ProductQuery, SortOption } from '../models/product.model';
+import { Category, CategoryList, InventoryPage, Product, ProductPage, ProductQuery, SingleCategory, SingleProduct, SortOption, TagList } from '../models/product.model';
 
-/**
- * Product catalogue state. Tries the FastAPI backend first and
- * transparently falls back to mock data when the API is unreachable,
- * so the app is fully functional offline / before the backend exists.
- */
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly api = inject(ApiService);
-
-  private readonly loaded = signal(false);
   private readonly productsSignal = signal<Product[]>([]);
   private readonly categoriesSignal = signal<Category[]>([]);
+  private readonly pageSignal = signal<ProductPage | null>(null);
   private readonly loadingSignal = signal(false);
   private readonly errorSignal = signal<string | null>(null);
-
   readonly products = this.productsSignal.asReadonly();
   readonly categories = this.categoriesSignal.asReadonly();
+  readonly page = this.pageSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
+  readonly productCount = computed(() => this.pageSignal()?.total ?? this.productsSignal().length);
 
-  readonly productCount = computed(() => this.productsSignal().length);
-
-  /** Load the catalogue once. Safe to call from anywhere. */
   loadCatalogue(force = false): void {
-    if (this.loaded() && !force) {
-      return;
-    }
-    this.loadingSignal.set(true);
-    this.errorSignal.set(null);
-
-    this.api
-      .get<Product[]>('/products')
-      .pipe(
-        catchError(() => {
-          this.errorSignal.set('Backend unavailable — showing offline catalogue.');
-          return of(MOCK_PRODUCTS);
-        }),
-        finalize(() => this.loadingSignal.set(false)),
-        tap(() => this.loaded.set(true)),
-      )
-      .subscribe((products) => this.productsSignal.set(products));
-
-    this.api
-      .get<Category[]>('/categories')
-      .pipe(catchError(() => of(MOCK_CATEGORIES)))
-      .subscribe((categories) => this.categoriesSignal.set(categories));
+    if (this.productsSignal().length && !force) return;
+    this.fetchProducts({ limit: 100 });
+    this.fetchCategories().subscribe({ error: () => {} });
   }
 
-  /** Fetch a single product. Falls back to the loaded/mock catalogue. */
-  getProduct(id: string): Observable<Product | undefined> {
-    const found = this.productsSignal().find((p) => p.id === id);
-    if (found) {
-      return of(found);
-    }
-
-    return this.api.get<Product>(`/products/${id}`).pipe(
-      catchError(() => of(this.productsSignal().find((p) => p.id === id))),
-    );
+  fetchProducts(query: ProductQuery = {}): void {
+    this.loadingSignal.set(true); this.errorSignal.set(null);
+    this.api.get<ProductPage>('/products', query as any).subscribe({
+      next: (p) => { this.pageSignal.set(p); this.productsSignal.set(p.products); this.loadingSignal.set(false); },
+      error: (e) => { this.errorSignal.set(this.msg(e)); this.loadingSignal.set(false); },
+    });
   }
 
-  // ---------------------------------------------------------------------------
-  //  Queries over the loaded catalogue
-  // ---------------------------------------------------------------------------
-  getById(id: string): Product | undefined {
-    return this.productsSignal().find((p) => p.id === id);
+  getProduct(reference: string): Observable<Product> {
+    return this.api.get<SingleProduct>(`/products/${reference}`).pipe(map((d) => d.product));
   }
 
-  byCategory(slug: string): Product[] {
-    const products = this.productsSignal();
-    if (!slug || slug === 'all') {
-      return products;
-    }
-    if (slug === 'bestsellers') {
-      return products.filter((p) => p.isBestSeller);
-    }
-    return products.filter((p) => p.category === slug);
+  fetchCategories(includeInactive = false): Observable<Category[]> {
+    const q = includeInactive ? { include_inactive: true } : undefined;
+    return this.api.get<CategoryList>('/categories', q as any).pipe(map((d) => d.categories), tap((c) => this.categoriesSignal.set(c)));
   }
 
-  bestSellers(): Product[] {
-    return this.productsSignal().filter((p) => p.isBestSeller);
-  }
+  getCategory(slug: string) { return this.api.get<SingleCategory>(`/categories/${slug}`).pipe(map((d) => d.category)); }
+  getTags() { return this.api.get<TagList>('/products/tags').pipe(map((d) => d.tags)); }
 
-  byCategorySlug(slug: string): Product[] {
-    return this.byCategory(slug);
+  getById(id: string) { return this.productsSignal().find((p) => p.id === id || p.slug === id); }
+  byCategory(slug: string) {
+    const ps = this.productsSignal();
+    if (!slug || slug === 'all') return ps;
+    if (slug === 'bestsellers') return ps.filter((p) => p.is_best_seller);
+    return ps.filter((p) => p.category === slug || p.category_slug === slug);
   }
+  bestSellers() { return this.productsSignal().filter((p) => p.is_best_seller); }
+  byCategorySlug(slug: string) { return this.byCategory(slug); }
+  categoryBySlug(slug: string) { return this.categoriesSignal().find((c) => c.slug === slug); }
 
-  queryProducts(query: ProductQuery): Product[] {
+  queryProducts(query: { q?: string; category?: string; tag?: string; sort?: SortOption; limit?: number }) {
     const q = (query.q ?? '').trim().toLowerCase();
-    let result = this.productsSignal();
-
-    if (query.category && query.category !== 'all') {
-      result = this.byCategory(query.category);
-    }
-
-    if (query.tag) {
-      result = result.filter((p) => p.tags.includes(query.tag!));
-    }
-
-    if (q) {
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.tags.some((t) => t.toLowerCase().includes(q)),
-      );
-    }
-
-    if (query.minPrice != null) {
-      result = result.filter((p) => p.price >= query.minPrice!);
-    }
-    if (query.maxPrice != null) {
-      result = result.filter((p) => p.price <= query.maxPrice!);
-    }
-
-    return this.sort(result, query.sort ?? 'popular', query.limit);
+    let res = [...this.productsSignal()];
+    if (query.category && query.category !== 'all') res = this.byCategory(query.category);
+    if (query.tag) res = res.filter((p) => p.tags?.includes(query.tag!));
+    if (q) res = res.filter((p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || (p.tags||[]).some(t=>t.toLowerCase().includes(q)));
+    return this.sort(res, query.sort ?? 'popular', query.limit);
   }
 
-  private sort(products: Product[], sort: SortOption, limit?: number): Product[] {
-    const sorted = [...products];
-
-    switch (sort) {
-      case 'price-asc':
-        sorted.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        sorted.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        sorted.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'popular':
-      default:
-        sorted.sort((a, b) => b.reviewCount - a.reviewCount);
-        break;
-    }
-
-    return limit ? sorted.slice(0, limit) : sorted;
+  private sort(items: Product[], sort: SortOption, limit?: number) {
+    const s = [...items];
+    const num = (v: any) => Number(v ?? 0);
+    if (sort === 'price-asc') s.sort((a,b)=>num(a.price)-num(b.price));
+    else if (sort === 'price-desc') s.sort((a,b)=>num(b.price)-num(a.price));
+    else if (sort === 'rating') s.sort((a,b)=>num(b.rating)-num(a.rating));
+    else if (sort === 'newest') s.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    else s.sort((a,b)=>(b.review_count||0)-(a.review_count||0));
+    return limit ? s.slice(0,limit) : s;
   }
 
-  categoryBySlug(slug: string): Category | undefined {
-    return this.categoriesSignal().find((c) => c.slug === slug);
-  }
+  createProduct(body: any) { return this.api.post<SingleProduct>('/products', body).pipe(map(d=>d.product), tap(()=>this.loadCatalogue(true))); }
+  updateProduct(ref: string, body: any) { return this.api.patch<SingleProduct>(`/products/${ref}`, body).pipe(map(d=>d.product), tap(()=>this.loadCatalogue(true))); }
+  deleteProduct(ref: string) { return this.api.delete(`/products/${ref}`).pipe(tap(()=>this.loadCatalogue(true))); }
+  adjustStock(ref: string, body: any) { return this.api.patch(`/products/${ref}/stock`, body); }
+  getInventory(params: any = {}) { return this.api.get<InventoryPage>('/products/inventory', params); }
+  createCategory(body: any) { return this.api.post<SingleCategory>('/categories', body).pipe(tap(()=>this.fetchCategories(true).subscribe())); }
+  updateCategory(id: string, body: any) { return this.api.patch<SingleCategory>(`/categories/${id}`, body).pipe(tap(()=>this.fetchCategories(true).subscribe())); }
+  deleteCategory(id: string) { return this.api.delete(`/categories/${id}`).pipe(tap(()=>this.fetchCategories(true).subscribe())); }
+  deactivateCategory(id: string) { return this.api.post<SingleCategory>(`/categories/${id}/deactivate`, {}).pipe(tap(()=>this.fetchCategories(true).subscribe())); }
 
-  /** Create/edit/delete products (admin). Works against the API, mock locally. */
-  createProduct(product: Product): Observable<Product> {
-    return this.api.post<Product>('/products', product).pipe(
-      catchError(() => {
-        this.upsertLocal(product);
-        return of(product);
-      }),
-    );
-  }
-
-  updateProduct(product: Product): Observable<Product> {
-    return this.api.put<Product>(`/products/${product.id}`, product).pipe(
-      catchError(() => {
-        this.upsertLocal(product);
-        return of(product);
-      }),
-    );
-  }
-
-  deleteProduct(id: string): Observable<void> {
-    return this.api.delete<void>(`/products/${id}`).pipe(
-      catchError(() => {
-        this.productsSignal.set(this.productsSignal().filter((p) => p.id !== id));
-        return of(undefined);
-      }),
-    );
-  }
-
-  private upsertLocal(product: Product): void {
-    const exists = this.productsSignal().some((p) => p.id === product.id);
-    this.productsSignal.set(
-      exists ? this.productsSignal().map((p) => (p.id === product.id ? product : p)) : [product, ...this.productsSignal()],
-    );
-  }
+  private msg(e: any) { return e?.error?.message || e?.error?.detail || e?.message || 'Request failed'; }
 }

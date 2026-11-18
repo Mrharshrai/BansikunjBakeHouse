@@ -1,19 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '../../core/services/order.service';
-import { OrderStatus } from '../../core/models/order.model';
+import { Order, OrderStatus } from '../../core/models/order.model';
 import { IconComponent } from '../../shared/components/icon/icon';
 import { LoaderComponent } from '../../shared/components/loader/loader';
+import { asNumber } from '../../core/utils/format';
+import { ToastService } from '../../core/services/toast.service';
 
-const STATUS_BADGE: Record<OrderStatus, string> = {
-  pending: 'badge--accent',
-  confirmed: 'badge--primary',
-  shipped: 'badge',
-  delivered: 'badge--success',
-  cancelled: 'badge--danger',
-};
-
-const STATUS_ORDER: OrderStatus[] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+const STATUS_BADGE: Record<OrderStatus, string> = { pending: 'badge--accent', confirmed: 'badge--primary', shipped: 'badge', delivered: 'badge--success', cancelled: 'badge--danger' };
 
 @Component({
   selector: 'app-admin-orders',
@@ -24,15 +18,11 @@ const STATUS_ORDER: OrderStatus[] = ['pending', 'confirmed', 'shipped', 'deliver
 })
 export class AdminOrdersComponent {
   protected readonly orderService = inject(OrderService);
-
+  private readonly toast = inject(ToastService);
   protected readonly orders = this.orderService.orders;
-  protected readonly statuses = STATUS_ORDER;
-
-  constructor() {
-    this.orderService.loadOrders();
-  }
-
-  protected badgeFor(status: OrderStatus): string {
-    return STATUS_BADGE[status];
-  }
+  protected readonly asNumber = asNumber;
+  protected readonly statuses: OrderStatus[] = ['pending','confirmed','shipped','delivered','cancelled'];
+  constructor() { this.orderService.loadAllOrders(); }
+  protected badgeFor(status: OrderStatus): string { return STATUS_BADGE[status]; }
+  setStatus(o: Order, status: string){ this.orderService.updateStatus(o.id, status as OrderStatus).subscribe({ next:()=>this.toast.show('Status updated'), error:(e)=>this.toast.show(e?.error?.message||'Update failed','error') }); }
 }
